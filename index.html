@@ -1,154 +1,749 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>شمسين - تطبيق حساب الطاقة الشمسية</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>شمسين — حاسبة منظومة شمسية متكاملة</title>
+
+<!-- Chart.js و jsPDF من CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
 <style>
-body {
-  font-family: Arial, sans-serif;
-  direction: rtl;
-  text-align: right;
-  margin: 0;
-  background: #f9f9f9;
-  color: #333;
-}
-header {
-  background: #ffdd57;
-  padding: 15px;
-  text-align: center;
-  font-size: 1.5em;
-  font-weight: bold;
-}
-.container {
-  padding: 15px;
-  max-width: 600px;
-  margin: auto;
-}
-label {
-  margin-top: 10px;
-  display: block;
-  font-weight: bold;
-}
-select, input, button {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-button {
-  background: #ff9800;
-  color: white;
-  border: none;
-  font-size: 1em;
-  cursor: pointer;
-}
-button:hover {
-  background: #e68900;
-}
-#results, #components, #info {
-  margin-top: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
-}
-.device-option {
-  display: flex;
-  align-items: center;
-}
-.device-option img {
-  width: 20px;
-  height: 20px;
-  margin-left: 5px;
-}
-@media (max-width: 600px) {
-  header {
-    font-size: 1.2em;
+  /* ====== Variables ====== */
+  :root{
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --primary: #0b69ff;
+    --accent: #ff9800;
+    --muted: #6b7280;
+    --success:#16a34a;
+    --danger:#ef4444;
+    --glass: rgba(255,255,255,0.7);
+    --radius: 12px;
   }
-}
+  [data-theme="dark"]{
+    --bg: #0b1220;
+    --card: #071126;
+    --primary: #60a5fa;
+    --accent: #f97316;
+    --muted: #9ca3af;
+    --glass: rgba(10,20,30,0.5);
+  }
+
+  /* ====== Base ====== */
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family: 'Tajawal', system-ui, -apple-system, Roboto, 'Segoe UI', Arial; background:var(--bg); color:var(--muted)}
+  .wrap{max-width:1100px;margin:18px auto;padding:18px}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#ffd27f);display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;box-shadow:0 6px 18px rgba(0,0,0,0.08)}
+  h1{margin:0;font-size:20px;color:var(--primary)}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+
+  /* ====== Controls Grid ====== */
+  .grid{display:grid;gap:12px;margin-top:12px}
+  .top-grid{grid-template-columns: 1fr; }
+  .two-col{grid-template-columns: 1fr 360px; }
+  .three-col{grid-template-columns: 1fr 360px 280px; }
+
+  @media(min-width:980px){ .grid.top-grid{grid-template-columns: 1fr 360px} .grid.two-col{grid-template-columns: 1fr 360px} }
+  @media(min-width:1200px){ .grid.three-col{grid-template-columns: 1fr 360px 280px } }
+
+  .card{background:var(--card);padding:14px;border-radius:var(--radius);box-shadow:0 8px 30px rgba(2,6,23,0.06);border:1px solid rgba(0,0,0,0.03)}
+  label{display:block;font-weight:700;color:var(--primary);font-size:13px;margin-bottom:6px}
+  select,input,button,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);font-size:14px}
+  .small{font-size:13px;padding:8px}
+
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .col{flex:1;min-width:120px}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* devices table */
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{padding:8px;border-bottom:1px solid rgba(0,0,0,0.06);text-align:center;color:var(--muted)}
+  th{background:linear-gradient(90deg, rgba(11,105,255,0.12), rgba(255,152,0,0.06));font-weight:700;color:var(--primary)}
+  .actions button{margin:4px; padding:6px 8px;border-radius:6px;border:none;cursor:pointer}
+  .btn{display:inline-block;padding:10px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+  .btn-primary{background:var(--primary);color:white}
+  .btn-accent{background:var(--accent);color:white}
+  .btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.06)}
+
+  .small-muted{font-size:12px;color:var(--muted)}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+
+  /* result area */
+  .result-grid{display:grid;grid-template-columns: repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}
+  .result-card{background:linear-gradient(0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04)}
+  .result-card h3{margin:0;font-size:14px;color:var(--muted)}
+  .result-card p{margin:6px 0 0 0;font-weight:800;color:var(--primary)}
+
+  /* interactive touches */
+  .btn:active{transform:translateY(1px)}
+  .device-row{transition:transform .18s ease, box-shadow .18s;cursor:pointer}
+  .device-row:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(2,6,23,0.06)}
+
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:9999}
+  .modal{background:var(--card);padding:18px;border-radius:12px;max-width:520px;width:94%;box-shadow:0 10px 40px rgba(2,6,23,0.2)}
+  .modal h2{margin:0 0 8px 0;color:var(--primary)}
+  .modal p{color:var(--muted);font-size:14px}
+
+  /* toggles row */
+  .toggles{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .switch{display:inline-flex;align-items:center;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,0.03)}
+  .switch input{margin-left:8px}
+
+  /* faq */
+  .faq h4{margin:0 0 6px 0;color:var(--primary)}
+  .video{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;display:grid;place-items:center;color:#fff}
+  .tiny{font-size:12px;color:var(--muted)}
+
+  footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
+<div class="wrap" id="app">
+  <header>
+    <div class="brand">
+      <div class="logo">شس</div>
+      <div>
+        <h1>شمسين — حاسبة منظومات شمسية</h1>
+        <p class="lead">متجاوبة، تفاعلية، وتدعم حفظ التقرير ومشاركة النتائج</p>
+      </div>
+    </div>
 
-<header>شمسين ☀️ - حساب مكونات الطاقة الشمسية</header>
+    <div class="toggles">
+      <div class="switch" title="الوضع الليلي">
+        <label class="tiny">الوضع الداكن</label>
+        <input type="checkbox" id="darkToggle">
+      </div>
 
-<div class="container">
-  <label for="device">اختر الجهاز:</label>
-  <select id="device">
-    <option value="100" data-icon="💨">💨 مروحة (100W)</option>
-    <option value="150" data-icon="🧊">🧊 ثلاجة (150W)</option>
-    <option value="200" data-icon="📺">📺 تلفاز (200W)</option>
-    <option value="250" data-icon="❄️">❄️ مكيف نسمة 6000 وحدة (250W)</option>
-    <option value="20" data-icon="💡">💡 إنارة داخلية (20W)</option>
-  </select>
+      <div class="switch" title="اللغة">
+        <label class="tiny">EN / العربية</label>
+        <select id="langToggle" style="padding:6px;border-radius:8px;">
+          <option value="ar">العربية</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+  </header>
 
-  <label for="quantity">العدد:</label>
-  <input type="number" id="quantity" value="1" min="1">
+  <!-- MAIN GRID -->
+  <div class="grid three-col">
+    <!-- LEFT: Devices & controls -->
+    <div class="card">
+      <label>عنوان التقرير (اختياري)</label>
+      <input id="reportTitle" placeholder="مثال: حساب نظام المنزل" />
 
-  <label for="hours">عدد ساعات التشغيل يومياً:</label>
-  <input type="number" id="hours" value="1" min="1">
+      <label>أضف جهاز</label>
+      <div class="row">
+        <div style="flex:1">
+          <select id="deviceCategory" class="small">
+            <option value="">اختر فئة</option>
+            <option value="lighting">الإضاءة</option>
+            <option value="cooling">تبريد</option>
+            <option value="kitchen">مطبخ</option>
+            <option value="water">مياه</option>
+            <option value="electronics">إلكترونيات</option>
+          </select>
+        </div>
+        <div style="flex:2">
+          <select id="deviceType" class="small">
+            <option value="">اختر جهاز...</option>
+          </select>
+        </div>
+      </div>
 
-  <button onclick="addDevice()">➕ إضافة الجهاز</button>
-  <button onclick="calculate()">📊 حاسب الآن</button>
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <label>العدد</label>
+          <input id="deviceCount" type="number" min="1" value="1" />
+        </div>
+        <div class="col">
+          <label>ساعات تشغيل يومياً</label>
+          <input id="deviceHours" type="number" min="0.25" step="0.25" value="1" />
+        </div>
+      </div>
 
-  <div id="results"></div>
-  <div id="components"></div>
+      <div class="row" style="margin-top:10px">
+        <button id="addDeviceBtn" class="btn btn-primary">➕ أضف</button>
+        <button id="clearAllBtn" class="btn btn-ghost">🧹 مسح الكل</button>
+      </div>
 
-  <div id="info">
-    <h3>🔌 الفرق بين التوصيل على التوالي والتوازي</h3>
-    <p><b>التوالي:</b> نربط الأجهزة أو البطاريات بحيث يمر نفس التيار في جميعها، ويُجمع الجهد الكلي.</p>
-    <p><b>التوازي:</b> نربط الأجهزة بحيث يتساوى الجهد على جميعها، ويُجمع التيار الكلي.</p>
-    <hr>
-    <h3>⚡ الفرق بين الفولت، الأمبير، والوات</h3>
-    <p><b>الفولت (V):</b> فرق الجهد الكهربائي.</p>
-    <p><b>الأمبير (A):</b> شدة التيار الكهربائي.</p>
-    <p><b>الوات (W):</b> القدرة الكهربائية = الفولت × الأمبير.</p>
-    <p><i>مثال:</i> إذا كان لديك جهاز يستهلك 100 وات ويعمل على 20 فولت، فإن التيار = 100 ÷ 20 = 5 أمبير.</p>
+      <div class="hint tiny">اضغط على صف الجهاز لعرض التفاصيل أو لتعديله.</div>
+
+      <table id="devicesTable" aria-label="قائمة الأجهزة">
+        <thead>
+          <tr><th>الجهاز</th><th>واط</th><th>عدد</th><th>ساعات</th><th>Wh/يوم</th><th>إجراءات</th></tr>
+        </thead>
+        <tbody id="devicesTbody"></tbody>
+      </table>
+
+      <div style="margin-top:10px" class="tiny muted">الأجهزة محفوظة تلقائياً في المتصفح (LocalStorage).</div>
+    </div>
+
+    <!-- MIDDLE: System specs -->
+    <div class="card">
+      <h3 style="margin-top:0">مواصفات النظام</h3>
+      <div class="row">
+        <div class="col">
+          <label>ساعات ذروة شمس متوقعة/يوم</label>
+          <input id="sunHours" type="number" min="1" max="10" step="0.1" value="5" />
+        </div>
+        <div class="col">
+          <label>قدرة اللوح (W)</label>
+          <select id="panelW">
+            <option value="100">100 W</option><option value="200">200 W</option><option value="300">300 W</option><option value="400" selected>400 W</option><option value="500">500 W</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <label>جهد النظام (V)</label>
+          <select id="systemVoltage"><option value="12">12 V</option><option value="24" selected>24 V</option><option value="48">48 V</option></select>
+        </div>
+        <div class="col">
+          <label>نوع البطارية</label>
+          <select id="batteryType">
+            <option value="lead">رصاص حمض (Lead Acid)</option>
+            <option value="agm">AGM</option>
+            <option value="gel">جِيل</option>
+            <option value="li">ليثيوم أيون (Li-ion)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:8px" class="row">
+        <div class="col">
+          <label>سعة بطارية افتراضية (Ah)</label>
+          <select id="batteryAh"><option value="100">100 Ah</option><option value="150">150 Ah</option><option value="200" selected>200 Ah</option><option value="300">300 Ah</option></select>
+        </div>
+        <div class="col">
+          <label>عمق تفريغ مقترح (DoD)</label>
+          <select id="batteryDoD"><option value="0.5">50%</option><option value="0.6">60%</option><option value="0.8" selected>80%</option></select>
+        </div>
+      </div>
+
+      <div style="margin-top:8px" class="row">
+        <div class="col">
+          <label>طول سلك المحصلة (متر)</label>
+          <input id="wireLength" type="number" min="0" value="10" />
+        </div>
+        <div class="col">
+          <label>قطر السلك (mm²)</label>
+          <select id="wireSize"><option value="2.5">2.5</option><option value="4">4</option><option value="6">6</option><option value="10" selected>10</option></select>
+        </div>
+      </div>
+
+      <div style="margin-top:8px" class="row">
+        <div class="col">
+          <label>أثر الحرارة (°C)</label>
+          <input id="ambientTemp" type="number" value="25" />
+          <div class="tiny hint">درجة الحرارة تُؤثر على كفاءة الألواح (قيمة تقريبية).</div>
+        </div>
+        <div class="col">
+          <label>تكلفة متوسطة للوحة (USD)</label>
+          <input id="panelPrice" type="number" step="0.1" value="120" />
+        </div>
+      </div>
+
+      <div style="margin-top:10px" class="row">
+        <button id="calcSystemBtn" class="btn btn-accent">✅ احسب النظام</button>
+        <button id="savePdfBtn" class="btn btn-ghost">🖨️ حفظ تقرير PDF</button>
+      </div>
+
+      <div class="hint tiny" style="margin-top:8px">يمكنك اختيار نوع البطارية لتعديل الافتراضات (DoD، كفاءة...)</div>
+    </div>
+
+    <!-- RIGHT: Results & charts -->
+    <div class="card">
+      <h3 style="margin-top:0">النتائج & المخططات</h3>
+
+      <div class="result-grid" id="summaryCards">
+        <div class="result-card"><h3>الاستهلاك اليومي</h3><p id="dailyKwh">-</p></div>
+        <div class="result-card"><h3>عدد الألواح</h3><p id="panelsCount">-</p></div>
+        <div class="result-card"><h3>سعة البطارية (Ah)</h3><p id="batteryNeededAh">-</p></div>
+        <div class="result-card"><h3>عدد البطاريات</h3><p id="batteryCount">-</p></div>
+      </div>
+
+      <canvas id="consumptionChart" style="margin-top:12px;max-height:240px"></canvas>
+
+      <div style="margin-top:12px">
+        <h4 class="muted" style="margin:0">نصائح ذكية</h4>
+        <ul id="smartTips" class="tiny">
+          <li>أضف أحمال بدء عالية (مضخات/ثلاجات) مع هامش إنفرتر.</li>
+        </ul>
+      </div>
+
+      <div style="margin-top:12px">
+        <h4 class="muted" style="margin:0">مشاركة</h4>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="shareWhatsapp" class="btn">واتساب</button>
+          <button id="shareEmail" class="btn btn-ghost">بريد</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDUCATION & FAQ -->
+  <div class="grid top-grid" style="margin-top:12px">
+    <div class="card">
+      <h3 style="margin-top:0">تعليم — التوصيل، المفاهيم، فيديو</h3>
+      <div>
+        <h4 style="margin-bottom:4px">التوصيل على التوالي vs التوازي</h4>
+        <p class="tiny">التوالي يزيد الفولتية، التوازي يزيد السعة (الأمبير). مثال عملي داخل التطبيق عند اختيار بطاريات.</p>
+
+        <h4 style="margin-bottom:4px;margin-top:8px">الفولت، الأمبير، والوات</h4>
+        <p class="tiny">W = V × A. إذا كان لديك جهاز 240W يعمل على 24V: التيار = 240 / 24 = 10A.</p>
+
+        <h4 style="margin-top:8px">فيديو تعليمي</h4>
+        <div class="video">
+          <!-- مؤشر لمقطع تعليمي (يمكن تضمين فيديو حقيقي لاحقاً) -->
+          <div style="padding:8px;text-align:center">
+            فيديو توضيحي: تركيب نظام صغير — (مكان مبدئي)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card faq">
+      <h3 style="margin-top:0">أسئلة شائعة</h3>
+      <div>
+        <h4>هل هذه الحسابات نهائية؟</h4>
+        <p class="tiny">لا — هذه تقديرات سريعة لمساعدة التخطيط. لفحص نهائي استعن بفني مختص.</p>
+        <h4>هل يدعم التطبيق موديلات مُحددة؟</h4>
+        <p class="tiny">يمكن إضافة قائمة موديلات وأسعار لحساب التكلفة بدقة — خيار قادم.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>مصمم بواسطة شمسين — احفظ الملف وشاركني الملاحظات</footer>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">تفاصيل الجهاز</h2>
+    <div id="modalBody"></div>
+    <div style="margin-top:12px;text-align:left">
+      <button id="modalClose" class="btn btn-ghost">إغلاق</button>
+    </div>
   </div>
 </div>
 
 <script>
-let devices = [];
+/* ====== Utility & Data ====== */
+const deviceCatalog = {
+  lighting: [
+    {name:'لمبة LED', watt:10, img: '💡', detail: 'لمبة إضاءة اقتصادية، مثالية للإضاءة العامة.'},
+    {name:'إنارة داخلية', watt:20, img: '💡', detail: 'مصباح داخلي متوسط الاستهلاك.'}
+  ],
+  cooling: [
+    {name:'مروحة سقف', watt:100, img:'💨', detail:'مروحة سقف 100W تقريباً.'},
+    {name:'مكيف نسمة 6000', watt:250, img:'❄️', detail:'مكيف صغير 6000 وحدة، استهلاك تقريبي 250W.'}
+  ],
+  kitchen: [
+    {name:'ثلاجة صغيرة', watt:150, img:'🧊', detail:'ثلاجة منزلية متوسطة الحجم.'},
+    {name:'ميكروويف', watt:800, img:'🔥', detail:'ميكروويف للاستخدام المؤقت.'}
+  ],
+  water: [
+    {name:'مضخة مياه 1 حصان', watt:750, img:'💧', detail:'مضخة مياه 1 حصان، تيار بدء أعلى.'}
+  ],
+  electronics: [
+    {name:'تلفاز LED', watt:100, img:'📺', detail:'تلفاز LED بحجم متوسط.'},
+    {name:'حاسوب محمول', watt:60, img:'💻', detail:'لابتوب متوسط الاستهلاك.'}
+  ]
+};
 
-function addDevice() {
-  const deviceSelect = document.getElementById('device');
-  const devicePower = parseFloat(deviceSelect.value);
-  const quantity = parseInt(document.getElementById('quantity').value);
-  const hours = parseFloat(document.getElementById('hours').value);
+const batterySpecs = {
+  lead: {eff:0.85, dod:0.5, lifeYears:4},
+  agm: {eff:0.88, dod:0.6, lifeYears:5},
+  gel: {eff:0.86, dod:0.6, lifeYears:5},
+  li: {eff:0.95, dod:0.9, lifeYears:10}
+};
 
-  devices.push({ power: devicePower, qty: quantity, hrs: hours });
-  alert('✅ تمت إضافة الجهاز للقائمة');
-}
+/* ====== DOM refs ====== */
+const deviceCategory = document.getElementById('deviceCategory');
+const deviceType = document.getElementById('deviceType');
+const deviceCount = document.getElementById('deviceCount');
+const deviceHours = document.getElementById('deviceHours');
+const addDeviceBtn = document.getElementById('addDeviceBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const devicesTbody = document.getElementById('devicesTbody');
 
-function calculate() {
-  let totalWh = 0;
-  devices.forEach(d => {
-    totalWh += d.power * d.qty * d.hrs;
+const sunHoursInput = document.getElementById('sunHours');
+const panelWInput = document.getElementById('panelW');
+const systemVoltageInput = document.getElementById('systemVoltage');
+const batteryTypeSelect = document.getElementById('batteryType');
+const batteryAhSelect = document.getElementById('batteryAh');
+const batteryDoDSelect = document.getElementById('batteryDoD');
+const wireLengthInput = document.getElementById('wireLength');
+const wireSizeSelect = document.getElementById('wireSize');
+const ambientTempInput = document.getElementById('ambientTemp');
+const panelPriceInput = document.getElementById('panelPrice');
+
+const calcSystemBtn = document.getElementById('calcSystemBtn');
+const savePdfBtn = document.getElementById('savePdfBtn');
+
+const dailyKwhEl = document.getElementById('dailyKwh');
+const panelsCountEl = document.getElementById('panelsCount');
+const batteryNeededAhEl = document.getElementById('batteryNeededAh');
+const batteryCountEl = document.getElementById('batteryCount');
+const summaryCards = document.getElementById('summaryCards');
+
+const smartTipsEl = document.getElementById('smartTips');
+
+const shareWhatsapp = document.getElementById('shareWhatsapp');
+const shareEmail = document.getElementById('shareEmail');
+const reportTitleInput = document.getElementById('reportTitle');
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const modalBody = document.getElementById('modalBody');
+const modalClose = document.getElementById('modalClose');
+
+const darkToggle = document.getElementById('darkToggle');
+const langToggle = document.getElementById('langToggle');
+
+/* ====== Chart ====== */
+const ctx = document.getElementById('consumptionChart').getContext('2d');
+let consumptionChart = new Chart(ctx, {
+  type: 'bar',
+  data: { labels: ['استهلاك/يوم','قدرة الألواح المطلوبة'], datasets: [{label:'قيمة',data:[0,0],backgroundColor:['rgba(11,105,255,0.7)','rgba(255,152,0,0.7)']}] },
+  options:{responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}}}
+});
+
+/* ====== State & persistence ====== */
+let devices = JSON.parse(localStorage.getItem('shamsin.devices') || '[]');
+let userSettings = JSON.parse(localStorage.getItem('shamsin.settings') || '{}');
+
+/* init UI from saved */
+function init() {
+  // populate category types
+  deviceCategory.addEventListener('change', (e)=>{
+    const cat = e.target.value;
+    deviceType.innerHTML = '<option value="">اختر جهاز...</option>';
+    if(!cat) return;
+    (deviceCatalog[cat]||[]).forEach(d=>{
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify({name:d.name,watt:d.watt});
+      opt.textContent = `${d.img || ''} ${d.name} (${d.watt}W)`;
+      opt.dataset.w = d.watt;
+      deviceType.appendChild(opt);
+    });
   });
-  const totalKWh = totalWh / 1000;
-  document.getElementById('results').innerHTML = `<h3>الاستهلاك اليومي:</h3>
-    <p>${totalWh} وات-ساعة (${totalKWh.toFixed(2)} كيلووات-ساعة)</p>`;
 
-  const peakSunHours = 5;
-  const panelWatt = 400;
-  const panelsNeeded = Math.ceil(totalWh / (panelWatt * peakSunHours));
+  // load saved devices
+  renderDevices();
 
-  const batteryVoltage = 12;
-  const batteryAhNeeded = Math.ceil((totalWh / batteryVoltage) * 1.2);
+  // load settings
+  if(userSettings.dark) document.documentElement.setAttribute('data-theme','dark'), darkToggle.checked=true;
+  if(userSettings.lang) langToggle.value = userSettings.lang;
+  if(userSettings.reportTitle) reportTitleInput.value = userSettings.reportTitle;
 
-  document.getElementById('components').innerHTML = `<h3>مكونات النظام المقترحة:</h3>
-    <ul>
-      <li>عدد الألواح: ${panelsNeeded} × ${panelWatt}W</li>
-      <li>البطاريات: ${batteryAhNeeded} أمبير-ساعة (${batteryVoltage}V)</li>
-      <li>الإنفرتر: ${Math.ceil(totalWh / 1000)} كيلووات</li>
-      <li>منظم الشحن: MPPT بقدرة ${panelWatt * panelsNeeded}W</li>
-      <li>التوصيلات: أسلاك نحاسية تتحمل ≥ ${Math.ceil(totalWh / batteryVoltage)} أمبير + فيوز وحمايات</li>
-    </ul>`;
+  // event toggles
+  darkToggle.addEventListener('change', (e)=>{
+    if(e.target.checked){ document.documentElement.setAttribute('data-theme','dark'); userSettings.dark=true; }
+    else { document.documentElement.removeAttribute('data-theme'); userSettings.dark=false; }
+    saveSettings();
+  });
+  langToggle.addEventListener('change', (e)=>{ userSettings.lang = e.target.value; saveSettings(); /* simple: not switching text content here */ });
+
+  // modal close
+  modalClose.addEventListener('click', ()=>{ modalBackdrop.style.display='none' });
+  modalBackdrop.addEventListener('click', (ev)=>{ if(ev.target===modalBackdrop) modalBackdrop.style.display='none' });
+
+  // bind actions
+  addDeviceBtn.addEventListener('click', onAddDevice);
+  clearAllBtn.addEventListener('click', onClearAll);
+  calcSystemBtn.addEventListener('click', calculateSystem);
+  savePdfBtn.addEventListener('click', savePdf);
+  shareWhatsapp.addEventListener('click', shareToWhatsapp);
+  shareEmail.addEventListener('click', shareToEmail);
 }
-</script>
+init();
 
+/* ====== Devices functions ====== */
+function onAddDevice(){
+  const sel = deviceType.value;
+  if(!sel){ alert('اختر جهازاً من القائمة'); return; }
+  const parsed = JSON.parse(sel);
+  const count = Math.max(1, parseInt(deviceCount.value) || 1);
+  const hrs = Math.max(0.25, parseFloat(deviceHours.value) || 1);
+  const device = {name: parsed.name, power: parsed.watt || parsed.w, count, hrs};
+  devices.push(device);
+  saveDevices();
+  renderDevices();
+}
+
+function renderDevices(){
+  devicesTbody.innerHTML = '';
+  devices.forEach((d, idx) => {
+    const tr = document.createElement('tr');
+    const whPerDay = (d.power * d.count * d.hrs);
+    tr.className = 'device-row';
+    tr.innerHTML = `
+      <td style="text-align:right">${d.name}</td>
+      <td>${d.power}</td>
+      <td>${d.count}</td>
+      <td>${d.hrs}</td>
+      <td>${(whPerDay/1000).toFixed(2)} kWh</td>
+      <td class="actions">
+        <button onclick="showDevice(${idx})" class="btn">ℹ️</button>
+        <button onclick="editDevice(${idx})" class="btn btn-ghost">✏️</button>
+        <button onclick="removeDevice(${idx})" class="btn" style="background:var(--danger);color:white">🗑️</button>
+      </td>
+    `;
+    devicesTbody.appendChild(tr);
+  });
+}
+
+function showDevice(i){
+  const d = devices[i];
+  modalBody.innerHTML = `<h3>${d.name}</h3><p>قدرة: ${d.power} W<br>العدد: ${d.count}<br>ساعات تشغيل: ${d.hrs} ساعة/يوم<hr><p class="tiny">${d.name} — مواصفات وملاحظات عامة.</p>`;
+  modalBackdrop.style.display = 'flex';
+}
+
+function editDevice(i){
+  const d = devices[i];
+  // prefill form
+  // try to set deviceCategory & deviceType (best effort)
+  // For simplicity, allow user to remove then re-add: we'll set values and remove
+  deviceCount.value = d.count;
+  deviceHours.value = d.hrs;
+  // set deviceType value to match name (search)
+  for(const cat in deviceCatalog){
+    const found = deviceCatalog[cat].find(x=>x.name===d.name);
+    if(found){ deviceCategory.value=cat; deviceCategory.dispatchEvent(new Event('change'));
+      // Wait for options to populate then set deviceType
+      setTimeout(()=> {
+        for(let opt of deviceType.options) if(opt.textContent.includes(d.name)){ deviceType.value = opt.value; break;}
+      },50);
+      break;
+    }
+  }
+  devices.splice(i,1);
+  saveDevices();
+  renderDevices();
+}
+
+function removeDevice(i){
+  if(!confirm('هل تريد حذف هذا الجهاز؟')) return;
+  devices.splice(i,1);
+  saveDevices();
+  renderDevices();
+}
+
+function onClearAll(){
+  if(!confirm('مسح جميع الأجهزة؟')) return;
+  devices = [];
+  saveDevices();
+  renderDevices();
+}
+
+function saveDevices(){
+  localStorage.setItem('shamsin.devices', JSON.stringify(devices));
+}
+
+/* ====== Settings ====== */
+function saveSettings(){
+  userSettings.reportTitle = reportTitleInput.value;
+  localStorage.setItem('shamsin.settings', JSON.stringify(userSettings));
+}
+
+/* ====== Calculations ====== */
+
+/* helper: panel temp coefficient model (approx) */
+function temperatureFactor(tempC){
+  // rough model: decrease ~0.4% per °C above 25°C
+  const coeffPerDeg = 0.004; // 0.4% per °C
+  const delta = tempC - 25;
+  return 1 - Math.max(0, delta * coeffPerDeg);
+}
+
+/* helper: wire resistance R = rho * L / A
+   approximate copper resistivity rho ~= 1.68e-8 ohm·m, area conversion mm2 -> m2
+   calculate voltage drop and power loss for DC, with I = P/V
+*/
+function wireLoss(powerW, voltage, lengthM, area_mm2) {
+  const rho = 1.68e-8;
+  const area_m2 = area_mm2 * 1e-6;
+  const R = rho * (lengthM*2) / area_m2; // round trip (to and back)
+  const I = powerW / voltage;
+  const lossW = I*I*R;
+  const lossPercent = (lossW / powerW)*100;
+  return {lossW, lossPercent: lossPercent.toFixed(2)};
+}
+
+function calculateSystem(){
+  if(devices.length===0){ alert('أضف جهازاً واحداً على الأقل'); return; }
+
+  // gather inputs
+  const sunHours = parseFloat(sunHoursInput.value) || 5;
+  const panelW = parseInt(panelWInput.value);
+  const systemV = parseInt(systemVoltageInput.value);
+  const batteryType = batteryTypeSelect.value;
+  const batteryAh = parseInt(batteryAhSelect.value);
+  const userDoD = parseFloat(batteryDoDSelect.value);
+  const wireLength = parseFloat(wireLengthInput.value) || 10;
+  const wireSize = parseFloat(wireSizeSelect.value);
+  const ambientTemp = parseFloat(ambientTempInput.value) || 25;
+  const panelPrice = parseFloat(panelPriceInput.value) || 120;
+
+  // totals
+  let totalWh = 0;
+  let peakLoad = 0;
+  devices.forEach(d=>{
+    const load = d.power * d.count;
+    const daily = load * d.hrs;
+    totalWh += daily;
+    if(load > peakLoad) peakLoad = load;
+  });
+
+  // apply ambient temp factor
+  const tempFactor = temperatureFactor(ambientTemp);
+
+  // system loss assumptions: inverter, wiring, mismatch, battery roundtrip => use user from battery spec + default loss factor
+  const battSpec = batterySpecs[batteryType] || {eff:0.85, dod:0.5};
+  const systemEfficiency = battSpec.eff * 0.96 * tempFactor; // approximate combined eff
+
+  // panels needed (taking into account system efficiency and sun hours)
+  const panelsNeeded = Math.ceil((totalWh / (sunHours * panelW * systemEfficiency)) );
+
+  // battery storage: assume backup = 1 day by default (you can change)
+  const backupDays = 1;
+  const requiredKWh = (totalWh * backupDays); // Wh to kWh later
+  // convert to Ah at system voltage, consider battery efficiency and DoD
+  const dod = userDoD || battSpec.dod || 0.5;
+  const batteryAhNeeded = Math.ceil((requiredKWh) / (systemV * battSpec.eff * dod) );
+  const requiredBatteriesCount = Math.ceil(batteryAhNeeded / batteryAh);
+  const batteryKwhTotal = (batteryAh * requiredBatteriesCount * systemV) / 1000;
+
+  // inverter sizing: peakLoad + margin 25%
+  const inverterW = Math.ceil(peakLoad * 1.25);
+
+  // wire loss
+  const wire = wireLoss(totalWh, systemV, wireLength, wireSize);
+
+  // cost estimate
+  const panelsCost = panelsNeeded * panelPrice;
+  const batteryUnitPrice = batteryType==='li' ? 900 : 200; // rough estimates in USD
+  const batteriesCost = requiredBatteriesCount * batteryUnitPrice;
+  const inverterCost = inverterW/1000 * 300; // $300 per kW rough
+  const totalCost = Math.round((panelsCost + batteriesCost + inverterCost) * 100) / 100;
+
+  // update UI
+  dailyKwhEl.textContent = (totalWh/1000).toFixed(2) + ' kWh';
+  panelsCountEl.textContent = panelsNeeded + ' لوح';
+  batteryNeededAhEl.textContent = batteryAhNeeded + ' Ah';
+  batteryCountEl.textContent = requiredBatteriesCount + ' بطارية';
+  // update chart
+  consumptionChart.data.datasets[0].data = [parseFloat((totalWh/1000).toFixed(2)), panelsNeeded * panelW];
+  consumptionChart.update();
+
+  // smart tips
+  const tips = [];
+  if(peakLoad > inverterW/1.25*0.9) tips.push('حمل الذروة قريب من سعة الإنفرتر — فكر بإنفرتر أقوى.');
+  if(batteryType==='li') tips.push('البطاريات الليثيوم أغلى لكن عمرها أطول وكفاءة أعلى.');
+  tips.push(`تقدير التكلفة التقريبي: ${totalCost} USD (ألواح: ${panelsCost}، بطاريات: ${batteriesCost}، إنفرتر: ${Math.round(inverterCost)})`);
+  renderTips(tips);
+
+  // summary area population
+  const content = `
+    <div>
+      <div class="tiny small-muted">الاستهلاك اليومي الكلي (تقديري)</div>
+      <div style="font-weight:800;color:var(--primary);font-size:18px">${(totalWh/1000).toFixed(2)} kWh</div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="tiny small-muted">عدد الألواح (${panelW} W)</div>
+      <div style="font-weight:800">${panelsNeeded} لوح</div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="tiny small-muted">حجم البطاريات</div>
+      <div style="font-weight:800">${batteryAhNeeded} Ah — (${requiredBatteriesCount} بطارية × ${batteryAh}Ah)</div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="tiny small-muted">الانفرتر المقترح</div>
+      <div style="font-weight:800">${inverterW} W</div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="tiny small-muted">فقد السلك التقديري</div>
+      <div style="font-weight:800">${parseFloat(wire.lossW).toFixed(2)} W (${wire.lossPercent}%)</div>
+    </div>
+    <div style="margin-top:10px">
+      <div class="tiny small-muted">تكلفة تقديرية</div>
+      <div style="font-weight:800">${totalCost} USD</div>
+    </div>
+  `;
+  document.getElementById('results-content').innerHTML = content;
+  resultsSectionShow();
+
+  // save summary to local storage
+  const summary = {
+    totalWh, panelsNeeded, batteryAhNeeded, requiredBatteriesCount, inverterW, totalCost, date: new Date().toISOString()
+  };
+  localStorage.setItem('shamsin.lastSummary', JSON.stringify(summary));
+}
+
+/* show results card */
+function resultsSectionShow(){ document.getElementById('results').style.display='block'; }
+
+/* render tips */
+function renderTips(arr){
+  smartTipsEl.innerHTML = '';
+  arr.forEach(a=>{
+    const li = document.createElement('li'); li.textContent = a;
+    smartTipsEl.appendChild(li);
+  });
+}
+
+/* ====== Sharing & PDF ====== */
+function shareToWhatsapp(){
+  const text = document.getElementById('results-content').innerText || 'نتائج شمسين';
+  const url = 'https://wa.me/?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+}
+function shareToEmail(){
+  const subject = encodeURIComponent(reportTitleInput.value || 'نتائج شمسين');
+  const body = encodeURIComponent(document.getElementById('results-content').innerText || '');
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+async function savePdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'pt', format:'a4', orientation:'portrait'});
+  const title = reportTitleInput.value || 'تقرير شمسين';
+  doc.setFontSize(18);
+  doc.text(title, 40, 40);
+  doc.setFontSize(12);
+  const summaryText = document.getElementById('results-content').innerText || 'لا توجد نتائج';
+  const lines = doc.splitTextToSize(summaryText, 520);
+  doc.text(lines, 40, 80);
+  doc.save((title || 'shamsin_report') + '.pdf');
+}
+
+/* ====== Persistence for settings & last summary ====== */
+function saveSettingsOnChange(){
+  userSettings.reportTitle = reportTitleInput.value;
+  localStorage.setItem('shamsin.settings', JSON.stringify(userSettings));
+}
+reportTitleInput.addEventListener('input', saveSettingsOnChange);
+
+/* ====== initial render ====== */
+renderDevices();
+
+/* ====== Expose some funcs to global for buttons in table */ 
+window.showDevice = showDevice;
+window.editDevice = editDevice;
+window.removeDevice = removeDevice;
+
+/* ====== Small improvements: auto-save when leaving inputs ====== */
+[ sunHoursInput, panelWInput, systemVoltageInput, batteryTypeSelect, batteryAhSelect, batteryDoDSelect, wireLengthInput, wireSizeSelect, ambientTempInput, panelPriceInput ].forEach(el=>{
+  el.addEventListener('change', ()=> { userSettings.lastInputs = {
+    sunHours: sunHoursInput.value, panelW: panelWInput.value, systemV: systemVoltageInput.value
+  }; saveSettings(); });
+});
+</script>
 </body>
-         </html>
+  </html>
