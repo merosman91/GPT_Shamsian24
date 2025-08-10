@@ -1,376 +1,154 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>شمسين - حاسبة الطاقة الشمسية المتكاملة</title>
+<meta charset="UTF-8">
+<title>شمسين - تطبيق حساب الطاقة الشمسية</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
-  body {
-    font-family: 'Tajawal', sans-serif;
-    background: #f0f4f8;
-    margin: 0;
-    padding: 10px;
-    color: #2c3e50;
+body {
+  font-family: Arial, sans-serif;
+  direction: rtl;
+  text-align: right;
+  margin: 0;
+  background: #f9f9f9;
+  color: #333;
+}
+header {
+  background: #ffdd57;
+  padding: 15px;
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+.container {
+  padding: 15px;
+  max-width: 600px;
+  margin: auto;
+}
+label {
+  margin-top: 10px;
+  display: block;
+  font-weight: bold;
+}
+select, input, button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+button {
+  background: #ff9800;
+  color: white;
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+}
+button:hover {
+  background: #e68900;
+}
+#results, #components, #info {
+  margin-top: 20px;
+  padding: 15px;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+.device-option {
+  display: flex;
+  align-items: center;
+}
+.device-option img {
+  width: 20px;
+  height: 20px;
+  margin-left: 5px;
+}
+@media (max-width: 600px) {
+  header {
+    font-size: 1.2em;
   }
-  h1, h2 {
-    text-align: center;
-    color: #2980b9;
-  }
-  .container {
-    max-width: 960px;
-    margin: auto;
-    background: #fff;
-    padding: 15px 20px 40px 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  }
-  label {
-    font-weight: 700;
-    margin-top: 15px;
-    display: block;
-  }
-  select, input[type=number], input[type=text], button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 6px;
-    border-radius: 6px;
-    border: 1px solid #bbb;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  button {
-    background-color: #2980b9;
-    color: white;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #1c5980;
-  }
-  .flex-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .flex-row > * {
-    flex: 1;
-    min-width: 120px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-  }
-  th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-    font-size: 14px;
-  }
-  th {
-    background-color: #2980b9;
-    color: white;
-  }
-  .icon {
-    width: 24px;
-    height: 24px;
-    vertical-align: middle;
-    margin-left: 5px;
-  }
-  .result-box {
-    margin-top: 25px;
-    background: #eaf2f8;
-    padding: 15px;
-    border-radius: 8px;
-    line-height: 1.5;
-  }
-  /* Responsive */
-  @media (max-width: 640px) {
-    .flex-row {
-      flex-direction: column;
-    }
-  }
-  /* Tooltip style */
-  .tooltip {
-    position: relative;
-    display: inline-block;
-    cursor: help;
-  }
-  .tooltip .tooltiptext {
-    visibility: hidden;
-    width: 220px;
-    background-color: #34495e;
-    color: #fff;
-    text-align: right;
-    border-radius: 5px;
-    padding: 8px;
-    position: absolute;
-    z-index: 1;
-    top: 150%;
-    right: 0;
-    opacity: 0;
-    transition: opacity 0.4s;
-    font-size: 13px;
-  }
-  .tooltip:hover .tooltiptext {
-    visibility: visible;
-    opacity: 1;
-  }
-  /* Share whatsapp button */
-  .whatsapp-share {
-    background: #25D366;
-    color: white;
-    font-weight: 700;
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    margin-top: 15px;
-    width: 100%;
-  }
+}
 </style>
 </head>
 <body>
-  <div class="container" role="main" aria-label="تطبيق شمسين لحساب الطاقة الشمسية">
-    <h1>شمسين ☀️</h1>
-    <h2>حاسبة الطاقة الشمسية المتكاملة</h2>
 
-    <label for="device-select">اختر الجهاز الكهربائي <span class="tooltip">❓
-      <span class="tooltiptext">اختر جهاز من القائمة، مع القدرة بالوات.</span>
-    </span></label>
-    <select id="device-select" aria-describedby="device-help" aria-required="true">
-      <option value="" disabled selected>اختر جهازًا</option>
-      <option value="250" data-icon="&#127777;">مكيف نسمة 6000 وحدة (250 وات)</option>
-      <option value="20" data-icon="&#128161;">إنارة داخلية (20 وات)</option>
-      <option value="100" data-icon="&#128168;">مروحة (100 وات)</option>
-      <option value="150" data-icon="&#127873;">ثلاجة (150 وات)</option>
-      <option value="200" data-icon="&#128250;">تلفاز (200 وات)</option>
-    </select>
+<header>شمسين ☀️ - حساب مكونات الطاقة الشمسية</header>
 
-    <div class="flex-row">
-      <div>
-        <label for="device-quantity">العدد</label>
-        <input type="number" id="device-quantity" min="1" value="1" aria-required="true" />
-      </div>
-      <div>
-        <label for="device-hours">ساعات التشغيل يوميًا</label>
-        <input type="number" id="device-hours" min="0.5" step="0.5" value="1" aria-required="true" />
-      </div>
-    </div>
+<div class="container">
+  <label for="device">اختر الجهاز:</label>
+  <select id="device">
+    <option value="100" data-icon="💨">💨 مروحة (100W)</option>
+    <option value="150" data-icon="🧊">🧊 ثلاجة (150W)</option>
+    <option value="200" data-icon="📺">📺 تلفاز (200W)</option>
+    <option value="250" data-icon="❄️">❄️ مكيف نسمة 6000 وحدة (250W)</option>
+    <option value="20" data-icon="💡">💡 إنارة داخلية (20W)</option>
+  </select>
 
-    <button id="add-device-btn" aria-label="إضافة الجهاز المختار">➕ إضافة الجهاز</button>
+  <label for="quantity">العدد:</label>
+  <input type="number" id="quantity" value="1" min="1">
 
-    <table aria-label="جدول الأجهزة المضافة">
-      <thead>
-        <tr>
-          <th>الجهاز</th>
-          <th>القدرة (وات)</th>
-          <th>العدد</th>
-          <th>ساعات التشغيل</th>
-          <th>الاستهلاك اليومي (ك.و.س)</th>
-          <th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody id="device-list">
-        <!-- الأجهزة المضافة تظهر هنا -->
-      </tbody>
-    </table>
+  <label for="hours">عدد ساعات التشغيل يومياً:</label>
+  <input type="number" id="hours" value="1" min="1">
 
-    <h2>إعدادات النظام</h2>
-    <div class="flex-row">
-      <div>
-        <label for="sun-hours">ساعات ذروة الشمس الفعالة</label>
-        <input type="number" id="sun-hours" min="1" max="10" step="0.1" value="5" />
-      </div>
-      <div>
-        <label for="panel-watt">قدرة اللوح الشمسي (وات)</label>
-        <select id="panel-watt" aria-required="true">
-          <option value="100">100 وات</option>
-          <option value="200">200 وات</option>
-          <option value="300">300 وات</option>
-          <option value="400" selected>400 وات</option>
-          <option value="500">500 وات</option>
-        </select>
-      </div>
-      <div>
-        <label for="battery-ah">سعة البطارية (أمبير ساعة)</label>
-        <select id="battery-ah" aria-required="true">
-          <option value="100">100 أمبير/ساعة</option>
-          <option value="150">150 أمبير/ساعة</option>
-          <option value="200" selected>200 أمبير/ساعة</option>
-          <option value="250">250 أمبير/ساعة</option>
-        </select>
-      </div>
-      <div>
-        <label for="system-voltage">جهد النظام (فولت)</label>
-        <select id="system-voltage" aria-required="true">
-          <option value="12">12 فولت</option>
-          <option value="24" selected>24 فولت</option>
-          <option value="48">48 فولت</option>
-        </select>
-      </div>
-    </div>
+  <button onclick="addDevice()">➕ إضافة الجهاز</button>
+  <button onclick="calculate()">📊 حاسب الآن</button>
 
-    <button id="calculate-btn" aria-label="حساب مكونات النظام">✅ حساب النظام الشمسي</button>
+  <div id="results"></div>
+  <div id="components"></div>
 
-    <section id="results" class="result-box" aria-live="polite" style="display:none;">
-      <h2>نتائج الحساب</h2>
-      <div id="results-content"></div>
-      <button id="share-whatsapp" class="whatsapp-share" aria-label="مشاركة النتائج عبر واتساب">📱 مشاركة عبر واتساب</button>
-    </section>
-
-    <section id="explanation" class="result-box" style="margin-top:30px;">
-      <h2>شرح التوصيلات والطاقة الكهربائية</h2>
-      <p>
-        <strong>التوصيل على التوالي:</strong> توصيل الأجزاء الواحدة تلو الأخرى بحيث يمر التيار في كل جهاز على التوالي. في هذا التوصيل، 
-        <em>الفولتية تزداد</em> (تجمع الفولتات)، لكن <em>التيار يظل ثابتاً</em>.<br>
-        مثال: لوصل بطاريتين 12 فولت على التوالي، تصبح الفولتية 24 فولت، لكن التيار يبقى كما هو.
-      </p>
-      <p>
-        <strong>التوصيل على التوازي:</strong> توصيل الأجزاء بحيث تتصل أطرافها الموجبة معاً والسالبة معاً. في هذا التوصيل،
-        <em>التيار يزداد</em> (تجمع الأمبيرات)، لكن <em>الفولتية تظل ثابتة</em>.<br>
-        مثال: لوصل بطاريتين 12 فولت 100 أمبير على التوازي، يبقى الفولت 12 فولت لكن التيار يصبح 200 أمبير.
-      </p>
-      <p>
-        <strong>الفولت (V)</strong> هو فرق الجهد الكهربائي أو القوة الدافعة التي تحرك الإلكترونات.<br>
-        <strong>الأمبير (A)</strong> هو قياس التيار أو كمية الشحنات الكهربائية التي تمر في دائرة كهربائية.<br>
-        <strong>الوات (W)</strong> هو القدرة الكهربائية، ويحسب بضرب الفولت × الأمبير.<br>
-        مثال: جهاز يستهلك 100 وات يمكن تشغيله على 12 فولت بتيار حوالي 8.3 أمبير (100 ÷ 12 = 8.3).
-      </p>
-    </section>
+  <div id="info">
+    <h3>🔌 الفرق بين التوصيل على التوالي والتوازي</h3>
+    <p><b>التوالي:</b> نربط الأجهزة أو البطاريات بحيث يمر نفس التيار في جميعها، ويُجمع الجهد الكلي.</p>
+    <p><b>التوازي:</b> نربط الأجهزة بحيث يتساوى الجهد على جميعها، ويُجمع التيار الكلي.</p>
+    <hr>
+    <h3>⚡ الفرق بين الفولت، الأمبير، والوات</h3>
+    <p><b>الفولت (V):</b> فرق الجهد الكهربائي.</p>
+    <p><b>الأمبير (A):</b> شدة التيار الكهربائي.</p>
+    <p><b>الوات (W):</b> القدرة الكهربائية = الفولت × الأمبير.</p>
+    <p><i>مثال:</i> إذا كان لديك جهاز يستهلك 100 وات ويعمل على 20 فولت، فإن التيار = 100 ÷ 20 = 5 أمبير.</p>
   </div>
+</div>
 
 <script>
-  const deviceSelect = document.getElementById('device-select');
-  const deviceQuantity = document.getElementById('device-quantity');
-  const deviceHours = document.getElementById('device-hours');
-  const addDeviceBtn = document.getElementById('add-device-btn');
-  const deviceList = document.getElementById('device-list');
+let devices = [];
 
-  const sunHoursInput = document.getElementById('sun-hours');
-  const panelWattInput = document.getElementById('panel-watt');
-  const batteryAhInput = document.getElementById('battery-ah');
-  const systemVoltageInput = document.getElementById('system-voltage');
+function addDevice() {
+  const deviceSelect = document.getElementById('device');
+  const devicePower = parseFloat(deviceSelect.value);
+  const quantity = parseInt(document.getElementById('quantity').value);
+  const hours = parseFloat(document.getElementById('hours').value);
 
-  const calculateBtn = document.getElementById('calculate-btn');
-  const resultsSection = document.getElementById('results');
-  const resultsContent = document.getElementById('results-content');
-  const shareWhatsappBtn = document.getElementById('share-whatsapp');
+  devices.push({ power: devicePower, qty: quantity, hrs: hours });
+  alert('✅ تمت إضافة الجهاز للقائمة');
+}
 
-  let devices = [];
+function calculate() {
+  let totalWh = 0;
+  devices.forEach(d => {
+    totalWh += d.power * d.qty * d.hrs;
+  });
+  const totalKWh = totalWh / 1000;
+  document.getElementById('results').innerHTML = `<h3>الاستهلاك اليومي:</h3>
+    <p>${totalWh} وات-ساعة (${totalKWh.toFixed(2)} كيلووات-ساعة)</p>`;
 
-  function renderDeviceList() {
-    deviceList.innerHTML = '';
-    devices.forEach((device, idx) => {
-      const dailyKwh = (device.power * device.quantity * device.hours / 1000).toFixed(2);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${device.name}</td>
-        <td>${device.power} واط</td>
-        <td>${device.quantity}</td>
-        <td>${device.hours}</td>
-        <td>${dailyKwh}</td>
-        <td>
-          <button onclick="editDevice(${idx})" aria-label="تعديل جهاز ${device.name}">✏️</button>
-          <button onclick="removeDevice(${idx})" aria-label="حذف جهاز ${device.name}">❌</button>
-        </td>
-      `;
-      deviceList.appendChild(tr);
-    });
-  }
+  const peakSunHours = 5;
+  const panelWatt = 400;
+  const panelsNeeded = Math.ceil(totalWh / (panelWatt * peakSunHours));
 
-  function addDevice() {
-    const selectedOption = deviceSelect.options[deviceSelect.selectedIndex];
-    if (!selectedOption || !deviceSelect.value) {
-      alert('يرجى اختيار جهاز.');
-      return;
-    }
-    const name = selectedOption.text;
-    const power = parseFloat(deviceSelect.value);
-    const quantity = parseInt(deviceQuantity.value);
-    const hours = parseFloat(deviceHours.value);
-    if (quantity < 1 || hours <= 0) {
-      alert('يرجى إدخال عدد وساعات تشغيل صحيحة.');
-      return;
-    }
-    devices.push({ name, power, quantity, hours });
-    renderDeviceList();
-  }
+  const batteryVoltage = 12;
+  const batteryAhNeeded = Math.ceil((totalWh / batteryVoltage) * 1.2);
 
-  function editDevice(idx) {
-    const device = devices[idx];
-    deviceSelect.value = device.power;
-    deviceQuantity.value = device.quantity;
-    deviceHours.value = device.hours;
-    devices.splice(idx, 1);
-    renderDeviceList();
-  }
-
-  function removeDevice(idx) {
-    devices.splice(idx, 1);
-    renderDeviceList();
-  }
-
-  function calculateSystem() {
-    if (devices.length === 0) {
-      alert('يرجى إضافة جهاز واحد على الأقل.');
-      return;
-    }
-    const sunHours = parseFloat(sunHoursInput.value);
-    const panelWatt = parseInt(panelWattInput.value);
-    const batteryAh = parseInt(batteryAhInput.value);
-    const systemVoltage = parseInt(systemVoltageInput.value);
-
-    // حساب الاستهلاك اليومي الكلي (ك.و.س)
-    let totalDailyKwh = 0;
-    devices.forEach(d => {
-      totalDailyKwh += (d.power * d.quantity * d.hours) / 1000;
-    });
-
-    // حساب عدد الألواح المطلوبة (مع افتراض كفاءة 80%)
-    const panelEfficiencyFactor = 0.8;
-    const totalPanelWattNeeded = totalDailyKwh * 1000 / sunHours / panelEfficiencyFactor;
-    const panelCount = Math.ceil(totalPanelWattNeeded / panelWatt);
-
-    // حساب سعة البطارية المطلوبة (مع افتراض 1 يوم احتياطي، وكفاءة 85%)
-    const batteryEfficiency = 0.85;
-    const batteryAhNeeded = Math.ceil((totalDailyKwh * 1000) / (systemVoltage * batteryEfficiency));
-
-    // حساب عدد البطاريات المطلوبة بناءً على سعة البطارية المختارة
-    const batteryCount = Math.ceil(batteryAhNeeded / batteryAh);
-
-    // تقدير الانفرتر (نفس استهلاك الأجهزة مع هامش 25%)
-    const inverterWatt = Math.ceil(totalDailyKwh * 1000 * 1.25);
-
-    // عرض النتائج
-    resultsContent.innerHTML = `
-      <p>الاستهلاك اليومي الكلي: <strong>${totalDailyKwh.toFixed(2)} ك.و.س</strong></p>
-      <p>عدد الألواح الشمسية المطلوبة (${panelWatt} وات): <strong>${panelCount} لوح</strong></p>
-      <p>سعة البطاريات المطلوبة: <strong>${batteryAhNeeded} أمبير/ساعة</strong></p>
-      <p>عدد البطاريات (سعة ${batteryAh} أمبير/ساعة): <strong>${batteryCount} بطارية</strong></p>
-      <p>مقدار الانفرتر المقترح (واط): <strong>${inverterWatt} واط</strong></p>
-    `;
-    resultsSection.style.display = 'block';
-  }
-
-  function shareWhatsapp() {
-    let message = 'نتائج حساب منظومة شمسين للطاقة الشمسية:\n';
-    message += `الاستهلاك اليومي الكلي: ${resultsContent.querySelector('p:nth-child(1) strong').textContent}\n`;
-    message += `عدد الألواح الشمسية المطلوبة: ${resultsContent.querySelector('p:nth-child(2) strong').textContent}\n`;
-    message += `سعة البطاريات المطلوبة: ${resultsContent.querySelector('p:nth-child(3) strong').textContent}\n`;
-    message += `عدد البطاريات: ${resultsContent.querySelector('p:nth-child(4) strong').textContent}\n`;
-    message += `مقدار الانفرتر المقترح: ${resultsContent.querySelector('p:nth-child(5) strong').textContent}\n`;
-    const url = 'https://wa.me/?text=' + encodeURIComponent(message);
-    window.open(url, '_blank');
-  }
-
-  addDeviceBtn.addEventListener('click', addDevice);
-  calculateBtn.addEventListener('click', calculateSystem);
-  shareWhatsappBtn.addEventListener('click', shareWhatsapp);
+  document.getElementById('components').innerHTML = `<h3>مكونات النظام المقترحة:</h3>
+    <ul>
+      <li>عدد الألواح: ${panelsNeeded} × ${panelWatt}W</li>
+      <li>البطاريات: ${batteryAhNeeded} أمبير-ساعة (${batteryVoltage}V)</li>
+      <li>الإنفرتر: ${Math.ceil(totalWh / 1000)} كيلووات</li>
+      <li>منظم الشحن: MPPT بقدرة ${panelWatt * panelsNeeded}W</li>
+      <li>التوصيلات: أسلاك نحاسية تتحمل ≥ ${Math.ceil(totalWh / batteryVoltage)} أمبير + فيوز وحمايات</li>
+    </ul>`;
+}
 </script>
+
 </body>
-  </html>
+         </html>
